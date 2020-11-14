@@ -4,7 +4,7 @@ const morgan = require("morgan");
 const cors = require("cors");
 const  BodyParser = require("body-parser");
 
-const WebSocket = require('ws')
+const WebSocket = require('ws');
 const wss = new WebSocket.Server({port:3030});
 
 wss.on('connection', function connection(ws) {
@@ -41,13 +41,11 @@ app.use('/uploads', express.static('uploads'));
 const AdminRoute = require("./routes/admin");
 const employeeRoute = require("./routes/employee");
 const quizRoute = require("./routes/quiz");
-const equipeRoute = require("./routes/equipe");
 const questionRoute = require("./routes/question");
 
 app.use("/quiz",quizRoute);
 app.use("/admin",AdminRoute);
 app.use("/employee",employeeRoute);
-app.use("/equipe",equipeRoute);
 app.use("/question",questionRoute);
 
 app.listen(3000,()=>{

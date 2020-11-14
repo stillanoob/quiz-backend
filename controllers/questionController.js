@@ -81,7 +81,7 @@ exports.create =async function(req,res){
 
 }
 
-exports.answerQuestion=function(req,res){
+exports.answerQuestionRight=function(req,res){
     questionModel.findById(req.params.idquestion)
     .exec()
     .then( async question=>{
@@ -121,12 +121,53 @@ exports.answerQuestion=function(req,res){
         return res.status(500).json(err)
     })
 }
+exports.answerQuestionWrong=function(req,res){
+    questionModel.findById(req.params.idquestion)
+    .exec()
+    .then( async question=>{
+        if(question){
+            if(question.correctReponse.toString() === req.body.answer.toString())
+            {
+                 const employee= await userModel.findById(req.params.iduser);
+                 employee.scores.map(score=>{
+                    if(score.quiz==question.quiz){
+                        if(score.questionsAnswered !=null){
+                            if(score.questionsAnswered.indexOf(question._id)!=-1)
+                            {
+                                return res.status(403).json({message:'question answered u cannot re-answer'});
+                            }
+                        }
+                        else {
+                            score.questionsAnswered=[]
+                            score.score+=0;
+                            score.questionsAnswered.push(question._id);
+                        }
+                    }
+                })
+                employee.save().then(employee=>{
+                    if(employee){
+                        return res.status(200).json({message:'question answered ! ',employee})
+                    }
+                    else {
+                        return res.status(400).json({message:'question not answered !'});
+                    }
+                }).catch(err=>{
+                    return res.status(500).json(err);
+                })
+            }
+        }
+    })
+    .catch(err=>{
+        return res.status(500).json(err)
+    })
+}
 exports.deleteQuestion = function(req,res){
+    console.log(req.params.idquestion)
     questionModel.findByIdAndDelete(req.params.idquestion).exec()
     .then( async questionDeleted=>{
         if(questionDeleted){
-            const employees = await userModel.find({'scores.questionsAnswered':{$contains:questionDeleted._id}});
-           console.log(employees);
+           // const employees = await userModel.find({'scores.questionsAnswered':{$contains:questionDeleted._id}});
+           //console.log(employees);
             quizModel.findByIdAndUpdate(questionDeleted.quiz,{$pull:{questions:questionDeleted._id}}).exec()
             .then(quiz=>{
                 if(quiz){

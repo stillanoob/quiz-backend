@@ -1,27 +1,19 @@
 const mongoose = require("mongoose");
 const userModel = require("../models/user");
-const RoleModel = require("../models/role");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
 exports.getEmployees=function(req,res){
-    let  employees=[];
-    RoleModel.find({type:"employee"}).exec()
-    .then( async roles=>{
-        if(roles.length>0){
-            for(var i =0;i<roles.length;i++){
-                const employee= await userModel.findById(roles[i].user).populate('role');
-                console.log(employee)
-                employees.push(employee)
-
-            }    
-         
-            return res.status(200).json(employees)
-
-        }
-        else  {
-            return res.status(200).json({message:"there is no employees"})
-        }
+    userModel.find({isadmin:false}).exec()
+    .then( employees=>{
+        if(employees.length>0){
+            return res.status(200).json(employees);
+        }else{
+            return res.status(404).json({message:"there is no employees"})
+        }    
+    })
+    .catch(err=>{
+        return res.status(500).json(err);
     })
 }
 
@@ -112,18 +104,12 @@ exports.getEmployee=function(req,res){
             .then( async  employee => {
                     
                 if (employee) {
-                    const role =  await RoleModel.findById(employee.role);  
-                    if(role.type!="employee"){
-                        return res.status(403).json({message:'you are not employee'});
-                    }
-                    
                     bcrypt.compare(req.body.motdepasse, employee.motdepasse,  (err, same) => {
                         if (err) {
                             return new Error("comparing failed");
                         }
                         if (same) {
-                        
-                            const token = jwt.sign({employee_id: employee._id ,role:role.type}, "Secret", { expiresIn: 60 * 60 * 60 })
+                            const token = jwt.sign({employee_id: employee._id}, "Secret", { expiresIn: 60 * 60 * 60 })
                             return res.status(200).json({ message: 'login successfully', token });
                         } 
                         else
@@ -144,7 +130,7 @@ exports.getEmployee=function(req,res){
     
     
     exports.signup =function (req,res){
-        console.log()
+        console.log(req.body)
         userModel.findOne({ email: req.body.email })
         .exec()
         .then(employee => {
@@ -157,12 +143,6 @@ exports.getEmployee=function(req,res){
                         return new Error("crypting error");
                     }
                     if (encrypted) {
-    
-                        const role = new RoleModel({
-                            _id:new mongoose.Types.ObjectId(),
-                            type:"employee",
-                            user:null
-                        })
                         const employee = new userModel({
                             _id: new mongoose.Types.ObjectId(),
                             nom: req.body.nom,
@@ -170,23 +150,11 @@ exports.getEmployee=function(req,res){
                             motdepasse: encrypted,
                             email: req.body.email,
                             datenaissance:req.body.datenaissance,
-                            role: role,
-                            image:req.files.image[0].path,
-                            cv:req.files.cv[0].path,
-                            roleType:role.type
+                            isadmin:false
                         })
-                        employee.save()
-                            .then(  employee => {
-                                if (employee) {      
-                                   role.user=employee._id;
-                                    role.save().then(roleSaved=>{                          
-                                    return res.status(201).json({ message: 'employee created', employee });
-                                }).catch(err=>{
-                                    return res.status(500).json(err);
-                                })
-                                }
-                            })
-                            .catch(err => {
+                        employee.save().then(
+                            employee => {return res.status(201).json(employee)}
+                        ).catch(err => {
                                 return res.status(500).json(err);
                             })
                     }

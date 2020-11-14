@@ -1,7 +1,6 @@
 const quizModel = require("../models/quiz");
 const mongoose = require("mongoose");
 const userModel = require("../models/user");
-const user = require("../models/user");
 
 
 
@@ -93,13 +92,16 @@ exports.getQuiz=function(req,res){
 
 
 exports.create=function(req,res){
+console.log(req.body)
 const quiz = new quizModel({
     _id:new mongoose.Types.ObjectId(),
-    name:req.body.name
+    name:req.body.name,
+    levelClearRate:req.body.levelClearRate,
+    questionPerLevel:req.body.questionPerLevel
 })    
 quiz.save()
 .then(quizSaved=>{if(quizSaved){
-    return res.status(201).json({message:"quiz created done !",quizSaved})
+    return res.status(201).json({message:"quiz created done !",quiz})
 }
 }).catch(err=>{
     return res.status(500).json(err);

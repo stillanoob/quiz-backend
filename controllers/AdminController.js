@@ -1,6 +1,5 @@
 const mongoose = require("mongoose");
 const userModel = require("../models/user");
-const RoleModel = require("../models/role");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 exports.getAdmin=function(req,res){
@@ -117,12 +116,6 @@ exports.signup =function (req,res){
                     return new Error("crypting error");
                 }
                 if (encrypted) {
-
-                    const role = new RoleModel({
-                        _id:new mongoose.Types.ObjectId(),
-                        type:"admin",
-                        user:null
-                    })
                     const admin = new userModel({
                         _id: new mongoose.Types.ObjectId(),
                         nom: req.body.nom,
@@ -130,10 +123,7 @@ exports.signup =function (req,res){
                         motdepasse: encrypted,
                         email: req.body.email,
                         datenaissance:req.body.datenaissance,
-                        role: role,
-                        image:req.files.image[0].path,
-                        cv:req.files.cv[0].path,
-                        roleType:role.type
+                        isadmin:true
 
                     })
                     admin.save()

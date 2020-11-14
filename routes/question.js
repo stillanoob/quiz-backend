@@ -4,11 +4,12 @@ const questionController = require("../controllers/questionController");
 
 
 route.post("/create/:idquiz",questionController.create);
-route.post("/update/:id");
+//route.post("/update/:id",questionController.update);
 route.get("/getQuestion/:idquestion",questionController.getQuestion);
 route.get("/getAll",questionController.getAll);
 route.get("/getquestionsByquiz/:idquiz",questionController.getQuestionsByquiz)
-route.delete("/delete/:id",questionController.deleteQuestion);
-route.post("/answerQuestion/:iduser/:idquestion",questionController.answerQuestion);
+route.delete("/delete/:idquestion",questionController.deleteQuestion);
+route.post("/answerQuestion/right/:iduser/:idquestion",questionController.answerQuestionRight);
+route.post("/answerQuestion/wrong/:iduser/:idquestion",questionController.answerQuestionWrong);
 
 module.exports=route;
